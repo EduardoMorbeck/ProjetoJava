@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 public class ListaDeAlunos {
     private Aluno[] alunos;
     private int tamanho;
@@ -6,12 +8,15 @@ public class ListaDeAlunos {
         alunos = new Aluno[capacidade];
         tamanho = 0;
     }
-
-    public void incluirNoInicio(Aluno aluno) {
+    
+    public void incluirNoInicio(Aluno aluno) throws ExcecaoDeAlunoJaExistente {
         if (tamanho < alunos.length) {
-            for (int i = tamanho; i > 0; i--) {
-                alunos[i] = alunos[i - 1];
+            for (int i = 0; i < tamanho; i++) {
+                if (alunos[i].getCpf().equals(aluno.getCpf())) {
+                    throw new ExcecaoDeAlunoJaExistente("Aluno já foi cadastrado.");
+                }
             }
+            
             alunos[0] = aluno;
             tamanho++;
         } else {
@@ -19,8 +24,14 @@ public class ListaDeAlunos {
         }
     }
 
-    public void incluirNoFim(Aluno aluno) {
+    public void incluirNoFim(Aluno aluno) throws ExcecaoDeAlunoJaExistente {
         if (tamanho < alunos.length) {
+            for (int i = 0; i < tamanho; i++) {
+                if (alunos[i].getCpf().equals(aluno.getCpf())) {
+                    throw new ExcecaoDeAlunoJaExistente("Aluno já foi cadastrado.");
+                }
+            }
+            
             alunos[tamanho] = aluno;
             tamanho++;
         } else {
@@ -64,4 +75,10 @@ public class ListaDeAlunos {
             return null;
         }
     }
+
+    public Iterable<Aluno> getAlunos() {
+        return Arrays.asList(Arrays.copyOf(alunos, tamanho));
+    }
+
 }
+
