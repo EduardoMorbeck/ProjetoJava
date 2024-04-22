@@ -2,12 +2,13 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Main {
-    public static void main(String[] args) {
+    private static ListaDeAlunos listaDeAlunos = new ListaDeAlunos(100);
+    private static ArrayList<Turma> turmas = new ArrayList<>();
+    public static void main(String[] args) throws ExcecaoDeAlunoJaExistente{
         Scanner scanner = new Scanner(System.in);
-        ListaDeAlunos listaDeAlunos = new ListaDeAlunos(100);
-        ArrayList<Turma> turmas = new ArrayList<>();
         
         while (true) {
+            System.out.println("--------------------------------------------------------------");
             System.out.println("Menu:");
             System.out.println("1. Cadastrar aluno");
             System.out.println("2. Cadastrar turma");
@@ -23,51 +24,91 @@ public class Main {
             
             switch (opcao) {
                 case 1:
-                    Aluno aluno = Aluno.cadastrarAluno(scanner);
-                    listaDeAlunos.incluirNoFim(aluno);
-                    break;
-                case 2:
-                    Turma turma = Turma.cadastrarTurma(scanner);
-                    turmas.add(turma);
-                    break;
-                case 3:
+                    System.out.println("--------------------------------------------------------------");
+                    System.out.println("Digite o nome do aluno:");
+                    String nome = scanner.nextLine();
                     System.out.println("Digite o CPF do aluno:");
                     String cpf = scanner.nextLine();
-                    Aluno alunoSelecionado = null;
-                    for (int i = 0; i < listaDeAlunos.tamanho(); i++) {
-                        Aluno a = listaDeAlunos.get(i);
-                        if (a.getCpf().equals(cpf)) {
-                            alunoSelecionado = a;
-                            break;
-                        }
-                    }
-                    if (alunoSelecionado == null) {
-                        System.out.println("Aluno não encontrado.");
-                        break;
-                    }
+                    System.out.println("Digite o endereço do aluno:");
+                    String endereco = scanner.nextLine();
+                    System.out.println("Digite a data de nascimento do aluno (formato: dd/mm/aaaa):");
+                    String dataNascimento = scanner.nextLine();
                     
-                    System.out.println("Digite o código da turma:");
-                    String codigoTurma = scanner.nextLine();
-                    Turma turmaSelecionada = null;
-                    for (Turma t : turmas) {
-                        if (t.getCodigo().equals(codigoTurma)) {
-                            turmaSelecionada = t;
-                            break;
-                        }
+                    Aluno aluno = new Aluno(nome, cpf, endereco, dataNascimento);
+                    try {listaDeAlunos.incluirNoFim(aluno);} catch (ExcecaoDeAlunoJaExistente e) {
+                        System.out.println("Não foi possível adicionar o aluno, " + e.getMessage());
                     }
-                    if (turmaSelecionada == null) {
-                        System.out.println("Turma não encontrada.");
-                        break;
-                    }
-                    
-                    turmaSelecionada.matricularAluno(alunoSelecionado);
                     break;
+                case 2:
+                    System.out.println("--------------------------------------------------------------");
+                    System.out.println("Digite o código da turma:");
+                    String codigo = scanner.nextLine();
+                    System.out.println("Digite a etapa de ensino (Infantil, Fundamental anos iniciais, Fundamental anos finais, Médio):");
+                    String etapaEnsino = scanner.nextLine();
+                    System.out.println("Digite o ano da turma:");
+                    int ano = scanner.nextInt();
+                    System.out.println("Digite o limite de vagas:");
+                    int limiteVagas = scanner.nextInt();
+                    System.out.println("Digite o número de matriculados");
+                    int numMatriculados = scanner.nextInt();
+                    
+
+                    Turma turma = new Turma(codigo, etapaEnsino, ano, limiteVagas, numMatriculados);
+                    turmas.add(turma);
+                    break;
+
+                    case 3:
+                    try {
+                        System.out.println("--------------------------------------------------------------");
+                        System.out.println("Digite o CPF do aluno:");
+                        String numeroCPF = scanner.nextLine();
+                        Aluno alunoSelecionado = null;
+                
+                        for (Turma t : turmas) {
+                            for (Aluno a : t.getAlunos()) {
+                                if (a.getCpf().equals(numeroCPF)) {
+                                    throw new ExcecaoDeAlunoJaExistente("Aluno já está cadastrado em outra turma.");
+                                }
+                            }
+                        }
+                
+                        for (int i = 0; i < listaDeAlunos.tamanho(); i++) {
+                            Aluno a = listaDeAlunos.get(i);
+                            if (a.getCpf().equals(numeroCPF)) {
+                                alunoSelecionado = a;
+                                break;
+                            }
+                        }
+                        if (alunoSelecionado == null) {
+                            System.out.println("Aluno não encontrado.");
+                        } else {
+                            System.out.println("Digite o código da turma:");
+                            String codigoTurma = scanner.nextLine();
+                            Turma turmaSelecionada = null;
+                            for (Turma t : turmas) {
+                                if (t.getCodigo().equals(codigoTurma)) {
+                                    turmaSelecionada = t;
+                                    break;
+                                }
+                            }
+                            if (turmaSelecionada == null) {
+                                System.out.println("Turma não encontrada.");
+                            } else {
+                                turmaSelecionada.matricularAluno(alunoSelecionado);
+                            }
+                        }
+                    } catch (ExcecaoDeAlunoJaExistente e) {
+                        System.out.println("Erro: " + e.getMessage());
+                    }
+                    break;                
+
                 case 4:
+                    System.out.println("--------------------------------------------------------------");
                     listaDeAlunos.ordenar();
                     System.out.println("Alunos da escola em ordem alfabética de nome:");
                     for (int i = 0; i < listaDeAlunos.tamanho(); i++) {
                         aluno = listaDeAlunos.get(i);
-                        System.out.println("Nome: " + aluno.getNome() + ", Idade: " + aluno.getIdade());
+                        System.out.println(aluno.toString());
                     }
                     break;
                 case 5:
@@ -91,7 +132,7 @@ public class Main {
 
     private static void consultarTurmas(ArrayList<Turma> turmas) {
         for (Turma turma : turmas) {
-            System.out.println("Código: " + turma.getCodigo() + ", Etapa de Ensino: " + turma.getEtapaEnsino());
+            System.out.println(turma.toString() + ", Etapa de Ensino: " + turma.getEtapaEnsino());
         }
     }
     
@@ -108,7 +149,7 @@ public class Main {
         if (turmaSelecionada != null) {
             System.out.println("Alunos matriculados na turma " + turmaSelecionada.getCodigo() + ":");
             for (Aluno aluno : turmaSelecionada.getAlunos()) {
-                System.out.println("Nome: " + aluno.getNome());
+                System.out.println(aluno.toString());
             }
         } else {
             System.out.println("Turma não encontrada.");
